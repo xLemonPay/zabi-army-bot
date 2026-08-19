@@ -1,26 +1,35 @@
 # Zabi Army Bot 😈
 
-Bot de Discord para **Zabi Army**, preparado para desplegarse en Northflank.
+Bot completo de Discord para **Zabi Army**, preparado para Northflank.
 
-## Funciones
+## Incluye
 
-- 🎬 Publicación automática de clips nuevos de Twitch en `🎬・clips-de-zabi`.
-- 💡 Sugerencias mediante botón + formulario + votos 👍/👎.
-- 🎫 Tickets privados con botón de apertura y cierre.
-- 🧱 `/setup` crea o migra la estructura del servidor **sin borrar canales existentes**.
+- ✅ Verificación por botón y rol `✅・Miembro`.
+- 👋 Bienvenidas automáticas después de verificarse.
+- 🎭 Roles de staff, streamer, VIP, miembro, juegos, plataformas y avisos.
+- 🎛️ Panel de self-roles con botones persistentes.
+- 💬 Estructura completa de texto y voz con permisos por verificación.
+- 🎬 Publicación automática de clips nuevos de Twitch.
+- 💡 Sugerencias con formulario, 👍/👎 y estados del staff.
+- 🎫 Tickets privados con apertura y cierre por botón.
+- 🛡️ Categoría privada de staff con oficina, casos e historial.
+- 📜 Logs básicos de entradas, salidas y cambios de roles.
 - 🌐 Health endpoint en `/health` para Northflank.
+- 🧱 `/setup` es idempotente: crea, migra y actualiza sin borrar canales existentes.
 
 ## Estructura
 
 ```text
 ╭・🚪 ANTES DE ENTRAR
-├ 📍・por-donde-empiezo
+├ ✅・verificate
 ├ 📜・las-reglas-del-juego
 ├ 📣・zabi-dice
-└ 🔗・cosas-utiles
+├ 🔗・cosas-utiles
+└ 🎭・elegi-tus-roles
 
 ╭・😈 ZABI ARMY
 ├ 💬・la-plaza
+├ 👋・nuevos-delincuentes
 ├ 😈・los-delincuentes
 ├ 🌙・charlas-de-madrugada
 ├ 📸・pruebas-del-delito
@@ -44,13 +53,36 @@ Bot de Discord para **Zabi Army**, preparado para desplegarse en Northflank.
 
 ╭・🎫 HABLÁ CON EL STAFF
 └ 🎫・abrir-ticket
+
+╭・🛡️ LA OFICINA
+├ 🛡️・la-oficina
+├ 🚨・casos-abiertos
+└ 📜・historial
 ```
 
-El setup reconoce y reutiliza varios canales actuales (`general`, `clips`, `musiquita`, `los-delincuentes`, `CONFESIONARIO 😈`, `hellfire club 😈`, `sotano`, etc.) para conservar su historial.
+El setup reconoce y reutiliza canales del servidor actual como `bienvenida-y-reglas`, `anuncios`, `recursos`, `general`, `clips`, `musiquita`, `los-delincuentes`, `CONFESIONARIO 😈`, `hellfire club 😈` y `sotano`, conservando su historial.
+
+## Roles principales
+
+```text
+👑・Owner
+🎥・Zabi
+🛡️・Admin
+🔨・Moderador
+💎・VIP
+✅・Miembro
+🔔・Avisos de Zabi
+🔫・Valorant
+⛏️・Minecraft
+🎮・Otros juegos
+🖥️・PC
+🎮・Consola
+📱・Mobile
+```
+
+El rol del bot debe permanecer por encima de los roles que administra.
 
 ## Variables de entorno
-
-Copiar `.env.example` o cargarlas directamente en Northflank:
 
 ```env
 DISCORD_TOKEN=
@@ -66,28 +98,21 @@ TWITCH_CLIPS_LOOKBACK_MINUTES=180
 
 No subir nunca `.env` ni tokens al repositorio.
 
-## Northflank
-
-- Source: `xLemonPay/zabi-army-bot`
-- Branch: `main`
-- Build: Dockerfile
-- Dockerfile: `/Dockerfile`
-- Build context: `/`
-- Instances: `1`
-- Port interno del health server: `8080`
-
 ## Primera instalación
 
-1. Desplegar el servicio.
-2. Verificar en logs `✅ Conectado como ...`.
-3. Ejecutar `/setup` una sola vez en Discord.
-4. Comprobar `/bot-estado`.
-5. Probar Twitch con `/clips-revisar`.
+1. Desplegar en Northflank.
+2. Confirmar `✅ Conectado como ...` en logs.
+3. Verificar que los slash commands estén sincronizados.
+4. Ejecutar `/setup` una sola vez para la instalación completa.
+5. Probar una cuenta sin rol en `✅・verificate`.
+6. Probar self-roles, sugerencias y tickets.
+7. Ejecutar `/clips-revisar` para validar Twitch.
 
 ## Comandos
 
-- `/setup` — instala/migra la estructura sin borrar canales.
-- `/bot-estado` — estado básico.
+- `/setup` — instala o actualiza todo el servidor sin borrar canales.
+- `/actualizar-paneles` — refresca verificación, reglas, roles, sugerencias y tickets.
+- `/bot-estado` — muestra el estado básico.
 - `/clips-revisar` — revisa Twitch manualmente.
 - `/sugerencia-estado` — cambia el estado de una sugerencia.
 
