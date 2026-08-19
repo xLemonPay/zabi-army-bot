@@ -6,15 +6,85 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply requested Zabi text changes
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('bot.py')
+          code = path.read_text(encoding='utf-8')
+
+          code = code.replace('CH_MUSIC = "🎧・la-rockola"', 'CH_MUSIC = "🎵・musiquita"')
+          code = code.replace('VC_CONFESSIONAL = "😈・CONFESIONARIO"', 'VC_CONFESSIONAL = "👹・CONFESIONARIO"')
+          code = code.replace('VC_HELLFIRE = "🔥・hellfire-club"', 'VC_HELLFIRE = "👹・hellfire-club"')
+
+          old_rules = '''            description=(
+                "**1.** Tratá a todos con respeto. Nada de acoso, discriminación, peleas o toxicidad constante.\\n"
+                "**2.** Nada de spam, flood, menciones masivas o publicidad sin permiso.\\n"
+                "**3.** No compartas contenido +18, gore ni material que pueda incomodar al resto.\\n"
+                "**4.** No publiques información personal propia o ajena.\\n"
+                "**5.** Usá cada canal para lo que corresponde y respetá las indicaciones del staff.\\n"
+                "**6.** Las bromas están bien mientras no se conviertan en hostigamiento.\\n"
+                "**7.** No uses multicuentas para evadir sanciones.\\n\\n"
+                "😈 **La idea es pasarla bien. Si algo perjudica a la comunidad, el staff puede intervenir aunque no esté escrito palabra por palabra acá.**"
+            ),'''
+          new_rules = '''            description=(
+                "⚠️ **Si se rompe alguna de estas reglas, puede ser motivo de ban.**\\n\\n"
+                "**1. No discrimines.** No se permite ni se tolera ningún tipo de discriminación.\\n\\n"
+                "**2. No me digan cómo jugar.** Solo juego para divertirme.\\n\\n"
+                "**3. Nada de política.** No se habla de temas de política ni cosas relacionadas.\\n\\n"
+                "**4. Respeto ante todo.** No falten el respeto a ningún miembro del canal, ni a mí.\\n\\n"
+                "**5. No pidan beneficios.** No pidan follows, mod, VIP, suscripción o algo relacionado.\\n\\n"
+                "💜 **Pásenla bien y disfruten.**"
+            ),'''
+          if old_rules in code:
+              code = code.replace(old_rules, new_rules, 1)
+
+          code = code.replace(
+              'VC_CONFESSIONAL: ["CONFESIONARIO 😈", "CONFESIONARIO", "confesionario"],',
+              'VC_CONFESSIONAL: ["CONFESIONARIO 😈", "CONFESIONARIO 👹", "CONFESIONARIO", "confesionario"],'
+          )
+          code = code.replace(
+              'VC_HELLFIRE: ["hellfire club 😈", "hellfire club", "hellfire-club"],',
+              'VC_HELLFIRE: ["hellfire club 😈", "hellfire club 👹", "hellfire club", "hellfire-club"],'
+          )
+
+          path.write_text(code, encoding='utf-8')
+          PY
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+
       - name: Install dependencies
         run: pip install -r requirements.txt
+
       - name: Compile bot
         run: python -m py_compile bot.py
+
+      - name: Commit requested changes
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          if git diff --quiet -- bot.py; then
+            echo "No requested changes pending"
+            exit 0
+          fi
+          git config user.name "xLemonPay Bot Update"
+          git config user.email "actions@users.noreply.github.com"
+          git add bot.py
+          git commit -m "Update Zabi rules and channel names"
+          git push
