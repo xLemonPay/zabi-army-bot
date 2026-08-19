@@ -116,3 +116,5 @@ async def on_voice_state_update(
           git rm .github/workflows/fix-temp-voice.yml
           git commit -m "Fix temporary voice room system"
           git push
+
+# trigger
