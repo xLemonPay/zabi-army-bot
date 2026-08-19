@@ -48,7 +48,7 @@ CH_DELINQUENTS = "😈・los-delincuentes"
 CH_LATE = "🌙・charlas-de-madrugada"
 CH_MEDIA = "📸・pruebas-del-delito"
 CH_MEMES = "😂・meme-del-dia"
-CH_MUSIC = "🎧・la-rockola"
+CH_MUSIC = "🎵・musiquita"
 CH_CLIPS = "🎬・clips-de-zabi"
 CH_SUGGESTIONS = "💡・tira-tu-idea"
 
@@ -57,8 +57,8 @@ CH_VALORANT = "🔫・ranked-y-lagrimas"
 CH_LFG = "👥・busco-gente"
 CH_COMPETITIVE = "🏆・competitivo"
 
-VC_CONFESSIONAL = "😈・CONFESIONARIO"
-VC_HELLFIRE = "🔥・hellfire-club"
+VC_CONFESSIONAL = "👹・CONFESIONARIO"
+VC_HELLFIRE = "👹・hellfire-club"
 VC_BASEMENT = "🕯️・el-sotano"
 VC_INSOMNIA = "🌙・insomnio"
 VC_CREATE = "➕・crear-sala"
@@ -102,8 +102,8 @@ ALIASES = {
     CH_DELINQUENTS: ["los-delincuentes"],
     CH_MUSIC: ["musiquita", "la-rockola"],
     CH_CLIPS: ["clips", "clips-de-zabi"],
-    VC_CONFESSIONAL: ["CONFESIONARIO 😈", "CONFESIONARIO", "confesionario"],
-    VC_HELLFIRE: ["hellfire club 😈", "hellfire club", "hellfire-club"],
+    VC_CONFESSIONAL: ["CONFESIONARIO 😈", "CONFESIONARIO 👹", "CONFESIONARIO", "confesionario"],
+    VC_HELLFIRE: ["hellfire club 😈", "hellfire club 👹", "hellfire club", "hellfire-club"],
     VC_BASEMENT: ["sotano", "sótano", "el-sotano"],
 }
 
