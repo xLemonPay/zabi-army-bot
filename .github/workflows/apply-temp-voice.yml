@@ -1,0 +1,67 @@
+name: Apply temporary voice rooms
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-temp-voice.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Patch bot.py
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('bot.py')
+          code = path.read_text(encoding='utf-8')
+
+          if 'TEMP_VC_PREFIX = "🎮・Sala de "' not in code:
+              code = code.replace(
+                  'VC_CREATE = "➕・crear-sala"\n',
+                  'VC_CREATE = "➕・crear-sala"\nTEMP_VC_PREFIX = "🎮・Sala de "\n',
+                  1,
+              )
+
+          if 'intents.voice_states = True' not in code:
+              code = code.replace(
+                  'intents.members = True\n',
+                  'intents.members = True\nintents.voice_states = True\n',
+                  1,
+              )
+
+          handler = '''\n\n@bot.event\nasync def on_voice_state_update(\n    member: discord.Member,\n    before: discord.VoiceState,\n    after: discord.VoiceState,\n):\n    # Entrar en ➕・crear-sala crea una voz temporal y mueve al usuario.\n    if after.channel and after.channel.name == VC_CREATE:\n        category = after.channel.category\n        if category is not None:\n            overwrites = dict(category.overwrites)\n            overwrites[member] = discord.PermissionOverwrite(\n                view_channel=True,\n                connect=True,\n                speak=True,\n                stream=True,\n                manage_channels=True,\n                move_members=True,\n                mute_members=True,\n                deafen_members=True,\n            )\n            try:\n                temp = await member.guild.create_voice_channel(\n                    name=f"{TEMP_VC_PREFIX}{member.display_name}"[:100],\n                    category=category,\n                    overwrites=overwrites,\n                    user_limit=0,\n                    reason="Sala temporal creada automáticamente",\n                )\n                await member.move_to(temp, reason="Mover a sala temporal")\n            except discord.Forbidden:\n                return\n\n    # Borra una sala temporal cuando queda vacía.\n    if before.channel and before.channel.name.startswith(TEMP_VC_PREFIX):\n        await asyncio.sleep(1)\n        if len(before.channel.members) == 0:\n            try:\n                await before.channel.delete(reason="Sala temporal vacía")\n            except (discord.NotFound, discord.Forbidden, discord.HTTPException):\n                pass\n'''
+
+          if '@bot.event\nasync def on_voice_state_update(' not in code:
+              marker = '\n\n# ──────────────────────────────────────────────────────────────────────────────\n# HEALTH + ARRANQUE\n'
+              if marker not in code:
+                  raise SystemExit('No encontré marcador HEALTH + ARRANQUE')
+              code = code.replace(marker, handler + marker, 1)
+
+          assert 'TEMP_VC_PREFIX = "🎮・Sala de "' in code
+          assert 'async def on_voice_state_update(' in code
+          assert 'intents.voice_states = True' in code
+          path.write_text(code, encoding='utf-8')
+          PY
+
+      - name: Validate Python
+        run: python -m py_compile bot.py
+
+      - name: Commit bot patch and remove temporary workflow
+        shell: bash
+        run: |
+          git config user.name "xLemonPay Bot Update"
+          git config user.email "actions@users.noreply.github.com"
+          rm -f .github/workflows/apply-temp-voice.yml
+          git add bot.py .github/workflows/apply-temp-voice.yml
+          git commit -m "Fix temporary voice channel creation"
+          git push
