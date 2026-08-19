@@ -6,71 +6,15 @@ on:
   pull_request:
     branches: [main]
 
-permissions:
-  contents: write
-
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Apply requested Zabi rules
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('bot.py')
-          code = path.read_text(encoding='utf-8')
-
-          title_marker = '            title="📜 Las reglas del juego",\n'
-          title_pos = code.index(title_marker)
-          desc_start = code.index('            description=(\n', title_pos)
-          colour_pos = code.index('            colour=discord.Colour.dark_purple(),', desc_start)
-
-          new_description = '''            description=(
-                "⚠️ **Si se rompe alguna de estas reglas, puede ser motivo de ban.**\\n\\n"
-                "**1. No discrimines.** No se permite ni se tolera ningún tipo de discriminación.\\n\\n"
-                "**2. No me digan cómo jugar.** Solo juego para divertirme.\\n\\n"
-                "**3. Nada de política.** No se habla de temas de política ni cosas relacionadas.\\n\\n"
-                "**4. Respeto ante todo.** No falten el respeto a ningún miembro del canal, ni a mí.\\n\\n"
-                "**5. No pidan beneficios.** No pidan follows, mod, VIP, suscripción o algo relacionado.\\n\\n"
-                "💜 **Pásenla bien y disfruten.**"
-            ),
-'''
-          code = code[:desc_start] + new_description + code[colour_pos:]
-
-          assert 'No se permite ni se tolera ningún tipo de discriminación.' in code
-          assert 'No se habla de temas de política ni cosas relacionadas.' in code
-          assert 'No pidan follows, mod, VIP, suscripción o algo relacionado.' in code
-
-          path.write_text(code, encoding='utf-8')
-          PY
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
       - name: Install dependencies
         run: pip install -r requirements.txt
-
       - name: Compile bot
         run: python -m py_compile bot.py
-
-      - name: Commit requested changes
-        if: github.event_name == 'push'
-        shell: bash
-        run: |
-          if git diff --quiet -- bot.py; then
-            echo "No requested changes pending"
-            exit 0
-          fi
-          git config user.name "xLemonPay Bot Update"
-          git config user.email "actions@users.noreply.github.com"
-          git add bot.py
-          git commit -m "Update Zabi requested rules"
-          git push
