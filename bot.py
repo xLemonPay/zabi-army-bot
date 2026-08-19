@@ -92,7 +92,6 @@ SELF_ROLES = [
     ("📱", "Mobile", ROLE_MOBILE),
 ]
 
-# Canales existentes del servidor real que se reutilizan en vez de duplicarse.
 ALIASES = {
     CH_VERIFY: ["bienvenida-y-reglas", "bienvenida", "verificacion", "verificación"],
     CH_RULES: ["reglas", "rules"],
@@ -118,10 +117,6 @@ _twitch_token: Optional[str] = None
 _twitch_token_expires_at = 0.0
 _twitch_broadcaster_id: Optional[str] = None
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# UTILIDADES
-# ──────────────────────────────────────────────────────────────────────────────
 
 def normalized_name(value: str) -> str:
     return re.sub(r"[^a-z0-9áéíóúüñ]+", "", value.casefold())
@@ -466,10 +461,6 @@ async def ensure_embed_message(
     return await channel.send(embed=embed, view=view)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# VERIFICACIÓN + BIENVENIDA
-# ──────────────────────────────────────────────────────────────────────────────
-
 async def send_welcome(member: discord.Member) -> None:
     channel = find_text(member.guild, CH_WELCOME)
     if channel is None:
@@ -514,10 +505,6 @@ class VerifyView(discord.ui.View):
         await send_welcome(interaction.user)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# SELF ROLES
-# ──────────────────────────────────────────────────────────────────────────────
-
 class ToggleRoleButton(discord.ui.Button):
     def __init__(self, emoji: str, label: str, role_name: str, row: int):
         self.role_name = role_name
@@ -555,10 +542,6 @@ class RolePanelView(discord.ui.View):
             self.add_item(ToggleRoleButton(emoji, label, role_name, row=index // 4))
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# SUGERENCIAS
-# ──────────────────────────────────────────────────────────────────────────────
-
 class SuggestionModal(discord.ui.Modal, title="Tirá tu idea"):
     idea = discord.ui.TextInput(
         label="Tu sugerencia",
@@ -594,10 +577,6 @@ class SuggestionPanelView(discord.ui.View):
     async def submit(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(SuggestionModal())
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# TICKETS
-# ──────────────────────────────────────────────────────────────────────────────
 
 def ticket_owner_id(channel: discord.TextChannel) -> Optional[int]:
     if not channel.topic:
@@ -684,10 +663,6 @@ class TicketPanelView(discord.ui.View):
         if reports:
             await reports.send(f"🎫 {interaction.user.mention} abrió {channel.mention}.", allowed_mentions=discord.AllowedMentions.none())
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# TWITCH CLIPS
-# ──────────────────────────────────────────────────────────────────────────────
 
 async def twitch_session() -> aiohttp.ClientSession:
     global _http_session
@@ -836,10 +811,6 @@ async def before_clips_watch():
     await bot.wait_until_ready()
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# INSTALACIÓN DEL SERVIDOR
-# ──────────────────────────────────────────────────────────────────────────────
-
 async def ensure_panels(guild: discord.Guild) -> None:
     verify = find_text(guild, CH_VERIFY)
     rules = find_text(guild, CH_RULES)
@@ -865,14 +836,13 @@ async def ensure_panels(guild: discord.Guild) -> None:
             rules,
             title="📜 Las reglas del juego",
             description=(
-                "**1.** Tratá a todos con respeto. Nada de acoso, discriminación, peleas o toxicidad constante.\n"
-                "**2.** Nada de spam, flood, menciones masivas o publicidad sin permiso.\n"
-                "**3.** No compartas contenido +18, gore ni material que pueda incomodar al resto.\n"
-                "**4.** No publiques información personal propia o ajena.\n"
-                "**5.** Usá cada canal para lo que corresponde y respetá las indicaciones del staff.\n"
-                "**6.** Las bromas están bien mientras no se conviertan en hostigamiento.\n"
-                "**7.** No uses multicuentas para evadir sanciones.\n\n"
-                "😈 **La idea es pasarla bien. Si algo perjudica a la comunidad, el staff puede intervenir aunque no esté escrito palabra por palabra acá.**"
+                "⚠️ **Si se rompe alguna de estas reglas, puede ser motivo de ban.**\n\n"
+                "**1. No discrimines.** No se permite ni se tolera ningún tipo de discriminación.\n\n"
+                "**2. No me digan cómo jugar.** Solo juego para divertirme.\n\n"
+                "**3. Nada de política.** No se habla de temas de política ni cosas relacionadas.\n\n"
+                "**4. Respeto ante todo.** No falten el respeto a ningún miembro del canal, ni a mí.\n\n"
+                "**5. No pidan beneficios.** No pidan follows, mod, VIP, suscripción o algo relacionado.\n\n"
+                "💜 **Pásenla bien y disfruten.**"
             ),
             colour=discord.Colour.dark_purple(),
         )
@@ -892,9 +862,7 @@ async def ensure_panels(guild: discord.Guild) -> None:
         await ensure_embed_message(
             resources,
             title="🔗 Cosas útiles",
-            description=(
-                "Acá el staff puede dejar redes, links importantes, comandos, horarios o cualquier recurso útil de Zabi Army."
-            ),
+            description="Acá el staff puede dejar redes, links importantes, comandos, horarios o cualquier recurso útil de Zabi Army.",
         )
 
     if suggestions:
@@ -965,7 +933,6 @@ async def install_server(guild: discord.Guild) -> None:
     await ensure_text(guild, staff, CH_REPORTS, topic="Registro de tickets y casos abiertos.", overwrites=staff_ow)
     await ensure_text(guild, staff, CH_LOGS, topic="Entradas, salidas y cambios de roles.", overwrites=staff_ow)
 
-    # El bot siempre conserva permiso de publicación en clips.
     if guild.me:
         clip_ow = clips.overwrites_for(guild.me)
         clip_ow.view_channel = True
@@ -976,10 +943,6 @@ async def install_server(guild: discord.Guild) -> None:
 
     await ensure_panels(guild)
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# COMANDOS
-# ──────────────────────────────────────────────────────────────────────────────
 
 @bot.tree.command(name="setup", description="Instala o actualiza todo Zabi Army sin borrar canales existentes.")
 @app_commands.guild_only()
@@ -1092,10 +1055,6 @@ async def clips_check(interaction: discord.Interaction):
         await interaction.followup.send(f"❌ Twitch: `{type(exc).__name__}: {str(exc)[:600]}`", ephemeral=True)
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# LOGS BÁSICOS
-# ──────────────────────────────────────────────────────────────────────────────
-
 async def send_log(guild: discord.Guild, text: str) -> None:
     channel = find_text(guild, CH_LOGS)
     if channel:
@@ -1131,10 +1090,6 @@ async def on_member_update(before: discord.Member, after: discord.Member):
     if parts:
         await send_log(after.guild, f"🎭 Roles de **{after}**: " + " | ".join(parts))
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# HEALTH + ARRANQUE
-# ──────────────────────────────────────────────────────────────────────────────
 
 async def health(_request: web.Request) -> web.Response:
     return web.json_response({"ok": True, "bot": "zabi-army-bot", "discord_ready": bot.is_ready()})
