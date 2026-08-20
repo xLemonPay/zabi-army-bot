@@ -16,9 +16,18 @@ PARTY_MODE_CHOICES = [
     app_commands.Choice(name="Custom / Personalizada", value="Custom / Personalizada"),
 ]
 
+PARTY_SERVER_CHOICES = [
+    app_commands.Choice(name="LATAM Sur (LAS)", value="LATAM Sur (LAS)"),
+    app_commands.Choice(name="LATAM Norte (LAN)", value="LATAM Norte (LAN)"),
+    app_commands.Choice(name="Brasil (BR)", value="Brasil (BR)"),
+    app_commands.Choice(name="Norteamérica (NA)", value="Norteamérica (NA)"),
+    app_commands.Choice(name="Europa (EU)", value="Europa (EU)"),
+    app_commands.Choice(name="Indistinto / Otro", value="Indistinto / Otro"),
+]
+
 
 def install(base) -> None:
-    """Mejora /party: modos seleccionables y eliminación de la búsqueda al cerrarla."""
+    """Mejora /party: modos y servidor seleccionables, y elimina la búsqueda al cerrarla."""
 
     class PartyView(discord.ui.View):
         def __init__(self):
@@ -143,8 +152,8 @@ def install(base) -> None:
 
     base.PartyView = PartyView
 
-    # El /party original usa `modo: str`, por eso Discord mostraba un campo de texto.
-    # Lo reemplazamos antes de sincronizar los slash commands y agregamos choices.
+    # Reemplazamos el /party original para que Discord muestre choices tanto
+    # para el modo de juego como para el servidor/región.
     base.bot.tree.remove_command("party")
 
     @base.bot.tree.command(name="party", description="Buscá gente para jugar Valorant.")
@@ -154,12 +163,15 @@ def install(base) -> None:
         cupos="Cantidad total de jugadores (2 a 5)",
         servidor="Servidor o región",
     )
-    @app_commands.choices(modo=PARTY_MODE_CHOICES)
+    @app_commands.choices(
+        modo=PARTY_MODE_CHOICES,
+        servidor=PARTY_SERVER_CHOICES,
+    )
     async def party(
         interaction: discord.Interaction,
         modo: app_commands.Choice[str],
+        servidor: app_commands.Choice[str],
         cupos: app_commands.Range[int, 2, 5] = 5,
-        servidor: str = "No especificado",
     ):
         if interaction.guild is None or not isinstance(interaction.user, discord.Member):
             return
@@ -185,6 +197,7 @@ def install(base) -> None:
             )
 
         mode_value = modo.value
+        server_value = servidor.value
         embed = discord.Embed(
             title="👥 Buscando gente — Valorant",
             description=f"**{interaction.user.display_name}** está armando grupo.",
@@ -199,7 +212,7 @@ def install(base) -> None:
         )
         embed.add_field(
             name="🌐 Servidor",
-            value=base.safe_text(servidor, 80),
+            value=base.safe_text(server_value, 80),
             inline=True,
         )
         embed.add_field(
