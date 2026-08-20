@@ -20,7 +20,7 @@ La base funcional sigue el Streamer Bot de s0ftbl4de, pero conserva la identidad
 - 👥 `/party` para buscar gente para Valorant desde el canal LFG.
 - 💡 Sugerencias con formulario, votos 👍/👎 y botones de estado para staff.
 - 🎫 Tickets privados con apertura/cierre y registro interno.
-- 📜 Logs de entradas, salidas, roles y cambios de canales; logs de contenido opcionales con `ENABLE_MESSAGE_LOGS`.
+- 📜 Logs de entradas, salidas, cambios de roles y cambios de canales.
 - 🟣 Twitch automático: detecta directo, publica aviso, asigna `🔴・EN DIRECTO`, crea canales temporales y cambia la presencia del bot.
 - 🎬 Clips automáticos de Twitch con deduplicación y revisión manual.
 - 🌐 Health endpoint `/health` para Northflank.
