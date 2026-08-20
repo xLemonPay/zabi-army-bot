@@ -17,4 +17,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Compile bot
-        run: python -m py_compile bot.py
+        run: python -m py_compile bot.py role_panels.py zabi_runner.py
+      - name: Import integration
+        run: python -c "import bot, role_panels; role_panels.install(bot); print('role panels integration ok')"
