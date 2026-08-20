@@ -1,23 +1,31 @@
-# Zabi Army Bot 😈
+# Zabi Army Bot 👹
 
-Bot completo de Discord para **Zabi Army**, preparado para Northflank.
+Bot de comunidad para Discord adaptado a **Zabi Army** y desplegado en Northflank.
 
-## Incluye
+## Objetivo
 
-- ✅ Verificación por botón y rol `✅・Miembro`.
-- 👋 Bienvenidas automáticas después de verificarse.
-- 🎭 Roles de staff, streamer, VIP, miembro, juegos, plataformas y avisos.
-- 🎛️ Panel de self-roles con botones persistentes.
-- 💬 Estructura completa de texto y voz con permisos por verificación.
-- 🎬 Publicación automática de clips nuevos de Twitch.
-- 💡 Sugerencias con formulario, 👍/👎 y estados del staff.
-- 🎫 Tickets privados con apertura y cierre por botón.
-- 🛡️ Categoría privada de staff con oficina, casos e historial.
-- 📜 Logs básicos de entradas, salidas y cambios de roles.
-- 🌐 Health endpoint en `/health` para Northflank.
-- 🧱 `/setup` es idempotente: crea, migra y actualiza sin borrar canales existentes.
+La base funcional sigue el Streamer Bot de s0ftbl4de, pero conserva la identidad y los nombres ya existentes en el servidor de Zabi.
 
-## Estructura
+**Importante:** si el bot encuentra un canal existente mediante sus aliases, lo reutiliza, mueve y actualiza permisos/topic si hace falta, pero **no lo renombra**. Esto conserva historial y nombres actuales.
+
+## Funciones incluidas
+
+- ✅ Verificación por botón con `✅・Miembro`.
+- 👋 Bienvenida automática después de verificar.
+- 🎭 Roles completos: Owner, Co-Owner, Admin, Moderador, Streamer, Subscriber, VIP, Miembro, avisos, país, edad, rango de Valorant, juegos y plataformas.
+- 🎛️ Panel persistente de roles.
+- 💬 Categorías, canales y permisos por verificación.
+- 📌 Guía automática dentro de cada canal de texto explicando para qué sirve.
+- 🔊 `➕・crear-sala`: crea una sala temporal, mueve al usuario y la elimina cuando queda vacía.
+- 👥 `/party` para buscar gente para Valorant desde el canal LFG.
+- 💡 Sugerencias con formulario, votos 👍/👎 y botones de estado para staff.
+- 🎫 Tickets privados con apertura/cierre y registro interno.
+- 📜 Logs de entradas, salidas, roles y cambios de canales; logs de contenido opcionales con `ENABLE_MESSAGE_LOGS`.
+- 🟣 Twitch automático: detecta directo, publica aviso, asigna `🔴・EN DIRECTO`, crea canales temporales y cambia la presencia del bot.
+- 🎬 Clips automáticos de Twitch con deduplicación y revisión manual.
+- 🌐 Health endpoint `/health` para Northflank.
+
+## Canales que crea si faltan
 
 ```text
 ╭・🚪 ANTES DE ENTRAR
@@ -34,7 +42,7 @@ Bot completo de Discord para **Zabi Army**, preparado para Northflank.
 ├ 🌙・charlas-de-madrugada
 ├ 📸・pruebas-del-delito
 ├ 😂・meme-del-dia
-├ 🎧・la-rockola
+├ 🎵・musiquita
 ├ 🎬・clips-de-zabi
 └ 💡・tira-tu-idea
 
@@ -45,8 +53,8 @@ Bot completo de Discord para **Zabi Army**, preparado para Northflank.
 └ 🏆・competitivo
 
 ╭・🔊 BAJÁ A HABLAR
-├ 😈・CONFESIONARIO
-├ 🔥・hellfire-club
+├ 👹・CONFESIONARIO
+├ 👹・hellfire-club
 ├ 🕯️・el-sotano
 ├ 🌙・insomnio
 └ ➕・crear-sala
@@ -60,27 +68,31 @@ Bot completo de Discord para **Zabi Army**, preparado para Northflank.
 └ 📜・historial
 ```
 
-El setup reconoce y reutiliza canales del servidor actual como `bienvenida-y-reglas`, `anuncios`, `recursos`, `general`, `clips`, `musiquita`, `los-delincuentes`, `CONFESIONARIO 😈`, `hellfire club 😈` y `sotano`, conservando su historial.
+Aliases conocidos permiten reutilizar, entre otros: `bienvenida-y-reglas`, `anuncios`, `recursos`, `general`, `clips`, `musiquita`, `los-delincuentes`, `CONFESIONARIO 😈`, `hellfire club 😈` y `sotano`.
+
+## Reglas configuradas
+
+El panel de reglas usa el texto acordado con la streamer: no discriminación, no backseating, nada de política, respeto, no pedir follows/mod/VIP/suscripción y pasarla bien.
 
 ## Roles principales
 
 ```text
 👑・Owner
-🎥・Zabi
+💎・Co-Owner
 🛡️・Admin
 🔨・Moderador
-💎・VIP
+🎥・Streamer
+💜・Subscriber
+⭐・VIP
 ✅・Miembro
-🔔・Avisos de Zabi
-🔫・Valorant
-⛏️・Minecraft
-🎮・Otros juegos
-🖥️・PC
-🎮・Consola
-📱・Mobile
+🔴・EN DIRECTO
+🔔・Avisos de directo
+🎉・Avisos de eventos
 ```
 
-El rol del bot debe permanecer por encima de los roles que administra.
+También se crean roles de país, edad, rango de Valorant, juegos y plataformas.
+
+El rol del bot debe permanecer por encima de todos los roles que administra.
 
 ## Variables de entorno
 
@@ -88,32 +100,56 @@ El rol del bot debe permanecer por encima de los roles que administra.
 DISCORD_TOKEN=
 GUILD_ID=
 PORT=8080
+ENABLE_MESSAGE_LOGS=false
 
 TWITCH_CLIENT_ID=
 TWITCH_CLIENT_SECRET=
 TWITCH_CHANNEL=
+STREAMER_DISCORD_ID=0
+TWITCH_POLL_SECONDS=60
+TWITCH_OFFLINE_DELETE_DELAY=300
 TWITCH_CLIPS_POLL_SECONDS=60
 TWITCH_CLIPS_LOOKBACK_MINUTES=180
 ```
 
-No subir nunca `.env` ni tokens al repositorio.
+## Comandos actuales
 
-## Primera instalación
+```text
+/setup
+/actualizar-canales
+/actualizar-roles
+/actualizar-guias
+/actualizar-paneles
+/actualizar-tickets
+/actualizar-twitch
+/bot-estado
 
-1. Desplegar en Northflank.
-2. Confirmar `✅ Conectado como ...` en logs.
-3. Verificar que los slash commands estén sincronizados.
-4. Ejecutar `/setup` una sola vez para la instalación completa.
-5. Probar una cuenta sin rol en `✅・verificate`.
-6. Probar self-roles, sugerencias y tickets.
-7. Ejecutar `/clips-revisar` para validar Twitch.
+/party
 
-## Comandos
+/clips-revisar
+/clips-estado
 
-- `/setup` — instala o actualiza todo el servidor sin borrar canales.
-- `/actualizar-paneles` — refresca verificación, reglas, roles, sugerencias y tickets.
-- `/bot-estado` — muestra el estado básico.
-- `/clips-revisar` — revisa Twitch manualmente.
-- `/sugerencia-estado` — cambia el estado de una sugerencia.
+/twitch-estado
+/twitch-preview
+/twitch-simular
+/twitch-fin-prueba
+```
+
+`/setup` se usa para la instalación inicial. Después conviene usar los comandos por sección.
+
+## Prueba recomendada antes del servidor real
+
+1. Ejecutar `/setup` en el servidor de prueba.
+2. Probar verificación con una cuenta sin `✅・Miembro`.
+3. Comprobar las guías de cada canal.
+4. Probar roles desde el panel.
+5. Entrar a `➕・crear-sala` y confirmar creación/movimiento/borrado de la voz temporal.
+6. Abrir y cerrar un ticket.
+7. Enviar y votar una sugerencia.
+8. Probar `/party`.
+9. Ejecutar `/twitch-simular` y luego `/twitch-fin-prueba`.
+10. Ejecutar `/clips-revisar` y `/bot-estado`.
+
+No subir nunca tokens ni `.env` al repositorio.
 
 Creado por **xLemonPay**.
