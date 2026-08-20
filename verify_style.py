@@ -4,7 +4,7 @@ import discord
 
 
 def install(base) -> None:
-    """Reemplaza únicamente la vista de verificación para quitar el emoji del botón."""
+    """Quita el emoji del botón y del título del panel de verificación."""
 
     class VerifyView(discord.ui.View):
         def __init__(self):
@@ -50,3 +50,41 @@ def install(base) -> None:
             await base.send_welcome(interaction.user)
 
     base.VerifyView = VerifyView
+
+    async def clean_verify_panel_title(guild: discord.Guild) -> None:
+        channel = base.find_text(guild, base.CH_VERIFY)
+        if channel is None:
+            return
+
+        try:
+            async for message in channel.history(limit=100):
+                if message.author != guild.me or not message.embeds:
+                    continue
+
+                title = message.embeds[0].title or ""
+                if title not in {"👹 Bienvenido/a a Zabi Army", "Bienvenido/a a Zabi Army"}:
+                    continue
+
+                embed = discord.Embed.from_dict(message.embeds[0].to_dict())
+                embed.title = "Bienvenido/a a Zabi Army"
+                try:
+                    await message.edit(embed=embed, view=VerifyView())
+                except (discord.Forbidden, discord.NotFound, discord.HTTPException):
+                    pass
+                return
+        except (discord.Forbidden, discord.HTTPException):
+            pass
+
+    original_ensure_panels = base.ensure_panels
+
+    async def patched_ensure_panels(guild: discord.Guild) -> None:
+        await original_ensure_panels(guild)
+        await clean_verify_panel_title(guild)
+
+    base.ensure_panels = patched_ensure_panels
+
+    async def clean_verify_panel_on_ready() -> None:
+        for guild in base.bot.guilds:
+            await clean_verify_panel_title(guild)
+
+    base.bot.add_listener(clean_verify_panel_on_ready, "on_ready")
