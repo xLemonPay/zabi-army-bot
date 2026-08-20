@@ -1,10 +1,24 @@
 from __future__ import annotations
 
 import discord
+from discord import app_commands
+
+
+PARTY_MODE_CHOICES = [
+    app_commands.Choice(name="Competitivo", value="Competitivo"),
+    app_commands.Choice(name="Swiftplay", value="Swiftplay"),
+    app_commands.Choice(name="Normal / Unrated", value="Normal / Unrated"),
+    app_commands.Choice(name="Spike Rush", value="Spike Rush"),
+    app_commands.Choice(name="Premier", value="Premier"),
+    app_commands.Choice(name="Deathmatch", value="Deathmatch"),
+    app_commands.Choice(name="Team Deathmatch", value="Team Deathmatch"),
+    app_commands.Choice(name="Escalation", value="Escalation"),
+    app_commands.Choice(name="Custom / Personalizada", value="Custom / Personalizada"),
+]
 
 
 def install(base) -> None:
-    """Hace que una búsqueda /party se elimine al cerrarse."""
+    """Mejora /party: modos seleccionables y eliminación de la búsqueda al cerrarla."""
 
     class PartyView(discord.ui.View):
         def __init__(self):
@@ -119,8 +133,6 @@ def install(base) -> None:
                     ephemeral=True,
                 )
 
-            # Confirmación privada para quien cerró el party y eliminación inmediata
-            # del mensaje público para que no queden búsquedas viejas en el canal.
             await interaction.response.send_message(
                 "✅ Party cerrado y eliminado.", ephemeral=True
             )
@@ -129,6 +141,77 @@ def install(base) -> None:
             except (discord.NotFound, discord.Forbidden, discord.HTTPException):
                 pass
 
-    # /party y main() consultan este global al ejecutarse, así que reemplazarlo acá
-    # conserva el resto de la lógica y también registra la vista persistente nueva.
     base.PartyView = PartyView
+
+    # El /party original usa `modo: str`, por eso Discord mostraba un campo de texto.
+    # Lo reemplazamos antes de sincronizar los slash commands y agregamos choices.
+    base.bot.tree.remove_command("party")
+
+    @base.bot.tree.command(name="party", description="Buscá gente para jugar Valorant.")
+    @app_commands.guild_only()
+    @app_commands.describe(
+        modo="Modo de juego",
+        cupos="Cantidad total de jugadores (2 a 5)",
+        servidor="Servidor o región",
+    )
+    @app_commands.choices(modo=PARTY_MODE_CHOICES)
+    async def party(
+        interaction: discord.Interaction,
+        modo: app_commands.Choice[str],
+        cupos: app_commands.Range[int, 2, 5] = 5,
+        servidor: str = "No especificado",
+    ):
+        if interaction.guild is None or not isinstance(interaction.user, discord.Member):
+            return
+
+        channel = base.find_text(interaction.guild, base.CH_LFG)
+        if channel is None:
+            return await interaction.response.send_message(
+                "No encuentro el canal para buscar gente.", ephemeral=True
+            )
+        if interaction.channel_id != channel.id:
+            return await interaction.response.send_message(
+                f"Usá `/party` dentro de {channel.mention}.", ephemeral=True
+            )
+
+        member_role = base.find_role(interaction.guild, base.ROLE_MEMBER)
+        if (
+            member_role
+            and member_role not in interaction.user.roles
+            and not base.is_staff(interaction.user)
+        ):
+            return await interaction.response.send_message(
+                "Primero verificáte.", ephemeral=True
+            )
+
+        mode_value = modo.value
+        embed = discord.Embed(
+            title="👥 Buscando gente — Valorant",
+            description=f"**{interaction.user.display_name}** está armando grupo.",
+            colour=discord.Colour.blurple(),
+            timestamp=discord.utils.utcnow(),
+        )
+        embed.add_field(name="🎯 Modo", value=base.safe_text(mode_value, 80), inline=True)
+        embed.add_field(
+            name="🏅 Rango",
+            value=base.get_member_valorant_rank(interaction.user),
+            inline=True,
+        )
+        embed.add_field(
+            name="🌐 Servidor",
+            value=base.safe_text(servidor, 80),
+            inline=True,
+        )
+        embed.add_field(
+            name="👥 Jugadores",
+            value=f"{interaction.user.mention}\n\n**1/{cupos}**",
+            inline=False,
+        )
+        embed.set_footer(
+            text=f"party_owner:{interaction.user.id}|max:{cupos}|closed:0"
+        )
+        await interaction.response.send_message(
+            embed=embed,
+            view=PartyView(),
+            allowed_mentions=discord.AllowedMentions.none(),
+        )
